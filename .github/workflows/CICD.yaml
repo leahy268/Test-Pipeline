@@ -1,0 +1,43 @@
+name: CICD Pipeline
+on:
+  push:
+   branches: [main]
+   paths-ignore:
+     - .gitignore
+     - "Archive/**"
+     - "docs/**"
+  
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - .gitignore
+      - "Archive/**"
+      - "docs/**"
+
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+
+  pp-approval-gate:
+  #  if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: pp-approval
+    
+    steps:
+      - name: approved
+        run: echo "Approve for PP"
+  
+  dummy-job:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: pp-approval
+    concurrency:
+      cancel-in-progress: true
+      group: pp-approval
+    steps:
+      - name: approved
+        run: echo "Approved"
