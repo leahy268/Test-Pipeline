@@ -34,7 +34,7 @@ jobs:
     
     steps:
       - name: approved PreProd
-        run: exit 1
+        run: exit 0
 
   deploy-prod:
 
@@ -43,4 +43,7 @@ jobs:
     concurrency:
       cancel-in-progress: true
       group: prod
-  
+
+    steps:
+      - name: approved PreProd
+        run: exit 1
