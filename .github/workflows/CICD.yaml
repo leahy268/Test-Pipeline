@@ -43,7 +43,9 @@ jobs:
     concurrency:
       cancel-in-progress: true
       group: prod
+    
+    needs: deploy-pp
 
     steps:
-      - name: approved PreProd
+      - name: approved Prod
         run: exit 1
