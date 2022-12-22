@@ -32,6 +32,7 @@ jobs:
         run: echo "Approve for PP"
   
   dummy-job:
+    needs: pp-approval-gate
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     concurrency:
