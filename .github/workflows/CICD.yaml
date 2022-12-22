@@ -34,7 +34,6 @@ jobs:
   dummy-job:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    environment: pp-approval
     concurrency:
       cancel-in-progress: true
       group: pp-approval
