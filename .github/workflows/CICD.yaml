@@ -22,24 +22,17 @@ defaults:
 
 jobs:
 
-  pp-approval-gate:
+  
+  #  if: github.event_name != 'pull_request'
+  deploy-prod:
   #  if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-  
-    steps:
-      - uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: leahy268
-          minimum-approvals: 1
-          issue-title: Approval into PP
-          timeout: 1
-  
-  dummy-job:
-    needs: pp-approval-gate
-  #  if: github.event_name != 'pull_request'
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
+    environment: prod
+    concurrency:
+      cancel-in-progress: true
+      group: prod
+    
     steps:
       - name: approved
-        run: echo "Approved"
+        run: echo "Approve for PP"
+  
