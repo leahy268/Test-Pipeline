@@ -24,15 +24,23 @@ jobs:
 
   
   #  if: github.event_name != 'pull_request'
-  deploy-prod:
+  deploy-pp:
   #  if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: preprod
+    concurrency:
+      cancel-in-progress: true
+      group: preprod
+    
+    steps:
+      - name: approved PreProd
+        run: exit 1
+
+  deploy-prod:
+
     runs-on: ubuntu-latest
     environment: prod
     concurrency:
       cancel-in-progress: true
       group: prod
-    
-    steps:
-      - name: approved
-        run: echo "Approve for PP"
   
