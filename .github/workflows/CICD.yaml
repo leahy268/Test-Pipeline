@@ -48,4 +48,4 @@ jobs:
 
     steps:
       - name: approved Prod
-        run: exit 1
+        run: echo "approved"
