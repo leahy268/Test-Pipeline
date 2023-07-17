@@ -31,7 +31,7 @@ jobs:
     
     steps:
       - name: approved PreProd
-        run: sleep 500
+        run: sleep(random % 1000)
 
   deploy-prod:
 
@@ -42,4 +42,4 @@ jobs:
 
     steps:
       - name: approved Prod
-        run: sleep 500
+        run: sleep(random % 1000)
