@@ -28,9 +28,6 @@ jobs:
   #  if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: pp
-    concurrency:
-      cancel-in-progress: false
-      group: preprod
     
     steps:
       - name: approved PreProd
@@ -40,9 +37,6 @@ jobs:
 
     runs-on: ubuntu-latest
     environment: prod
-    concurrency:
-      cancel-in-progress: false
-      group: prod
     
     needs: deploy-pp
 
