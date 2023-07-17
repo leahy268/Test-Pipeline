@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: pp
     concurrency:
-      cancel-in-progress: true
+      cancel-in-progress: false
       group: preprod
     
     steps:
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: prod
     concurrency:
-      cancel-in-progress: true
+      cancel-in-progress: false
       group: prod
     
     needs: deploy-pp
