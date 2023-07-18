@@ -16,10 +16,6 @@ on:
 
   workflow_dispatch:
 
-defaults:
-  run:
-    shell: pwsh
-
 jobs:
 
   
