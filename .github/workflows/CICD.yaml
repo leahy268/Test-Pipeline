@@ -43,3 +43,4 @@ jobs:
     steps:
       - name: approved Prod
         run: sleep $((RANDOM % 1000))
+        shell: bash
