@@ -1,37 +1,131 @@
-name: CICD Pipeline
-
+name: CICD Pipeline - PP to Prod
 on:
-  push:
+  schedule:
+    # Su 10pm Canberra time (AEST) = Su 12pm (UTC)
+    # https://crontab.guru/#0_12_*_*_0
+    - cron: '0 12 * * 0'
+
   workflow_dispatch:
 
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
-  build:
+
+  # job to dowload and republish artifacts from last successful workflow
+  republish-artifacts:
+    name: Get last good test build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Download artifacts
+        run: echo "Download Artifacts"
+        shell: bash
+        
+      - name: Upload artifacts
+        run: echo "Upload Artifacts"
+        shell: bash
+        
+
+# -----------------------------------------------------------------------------
+
+  publish_release:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-release
+      cancel-in-progress: false
+    steps:
+    - name: artifact Upload
+      run: echo "Upload Artifacts"
+      shell: bash
+     
+    needs: 
+      - republish-artifacts
+  
+  pp-contract-test:
+    runs-on: ubuntu-latest
+    concurrency:
+      cancel-in-progress: false
+      group: pp-contract-test
+    steps:
+    - name: artifact Upload
+      run: echo "Upload Artifacts"
+      shell: bash
+    
+    
+    needs:
+      - republish-artifacts
       
-      - name: Build
-        run: echo dotnet build
-       
-  approval-gate:
-    runs-on: ubuntu-latest
-    environment: 
-      name: prod-approval
-    needs: build 
-    steps:
-      - name: Wait for approval
-        run: echo "approved"
-        shell: bash
+# -----------------------------------------------------------------------------
 
-  deploy-prod:
+  pp-approval:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
-    environment: prod
-    needs: build
+    environment: "pp-approval"
+    concurrency:
+      cancel-in-progress: true
+      group: pp-approval
     steps:
-      - name: Deploy to Prod
-        run: echo "Deploying to production"
-      - name: Random Sleep
-        run: sleep $((RANDOM % 1000))
-        shell: bash
+      - name: approved
+        run: |
+          Write-Output "approved for pp"
+    needs:
+      - republish-artifacts
+      - pp-contract-test
 
+
+# -----------------------------------------------------------------------------
+
+  pp-deploy:
+    runs-on: ubuntu-latest
+    if: (github.event_name != 'schedule' && needs.pp-approval.result == 'success') || (github.event_name == 'schedule' && needs.pp-contract-test.result == 'success')
+    concurrency:
+      cancel-in-progress: false
+      group: pp-deploy
+    steps:
+    - name: artifact Upload
+      run: echo "Deploying"
+      shell: bash
+    
+    needs:
+      - pp-contract-test
+      - pp-approval
+
+  prod-contract-test:
+    runs-on: ubuntu-latest
+    concurrency:
+      cancel-in-progress: false
+      group: prod-contract-test
+    steps:
+    - name: artifact Upload
+      run: echo "Deploying"
+      shell: bash
+    
+# -----------------------------------------------------------------------------
+
+  prod-approval:
+    runs-on: ubuntu-latest
+    environment: "prod-approval"
+    concurrency:
+      cancel-in-progress: true
+      group: prod-approval
+    steps:
+      - name: approved
+        run: |
+          Write-Output "approved for prod"
+    needs:
+      - pp-deploy
+# -----------------------------------------------------------------------------
+
+  prod-deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      cancel-in-progress: false
+      group: prod-deploy
+    steps:
+    - name: artifact Upload
+      run: echo "Deploying"
+      shell: bash
+    needs:
+      - prod-approval
+      - prod-contract-test
