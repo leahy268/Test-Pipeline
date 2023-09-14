@@ -1,42 +1,38 @@
 name: CICD Pipeline
+
 on:
   push:
-   branches: [main]
-   paths-ignore:
-     - .gitignore
-     - "Archive/**"
-     - "docs/**"
-  
-  pull_request:
-    branches: [main]
-    paths-ignore:
-      - .gitignore
-      - "Archive/**"
-      - "docs/**"
-
   workflow_dispatch:
 
 jobs:
-
-  
-  #  if: github.event_name != 'pull_request'
-  deploy-pp:
-  #  if: github.event_name != 'pull_request'
+  build:
     runs-on: ubuntu-latest
-    environment: pp
-    
     steps:
-      - name: approved PreProd
-        run: sleep $((RANDOM % 1000))
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Build
+        run: dotnet build
+        # assuming you have a .NET solution at the root; modify as needed
+
+  approval-gate:
+    runs-on: ubuntu-latest
+    environment: 
+      name: prod-approval
+    needs: build # assuming the approval gate should only run after a successful build
+    steps:
+      - name: Wait for approval
+        # this step is just a placeholder for actual approval logic
 
   deploy-prod:
-
     runs-on: ubuntu-latest
     environment: prod
-    
-    needs: deploy-pp
-
+    needs: build
     steps:
-      - name: approved Prod
+      - name: Deploy to Prod
+        run: echo "Deploying to production"
+        # replace with actual deploy commands
+      - name: Random Sleep
         run: sleep $((RANDOM % 1000))
         shell: bash
+
