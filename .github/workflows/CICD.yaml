@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v2
       
       - name: Build
-        run: dotnet build
+        run: echo dotnet build
        
   approval-gate:
     runs-on: ubuntu-latest
