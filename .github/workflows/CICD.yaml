@@ -81,7 +81,7 @@ jobs:
     concurrency:
       cancel-in-progress: false
       group: pp-deploy
-    if: (github.event_name == 'schedule' && needs.pp-contract-test.result == 'success') || (github.event_name != 'schedule' && needs.pp-contract-test.result == 'success' && needs.pp-approval.result == 'success')
+    if: needs.pp-contract-test.result == 'success' && (github.event_name == 'schedule' || needs.pp-approval.result == 'success')
     steps:
     - name: artifact Upload
       run: echo "Deploying"
