@@ -13,18 +13,16 @@ jobs:
       
       - name: Build
         run: echo dotnet build
-        # assuming you have a .NET solution at the root; modify as needed
-
+       
   approval-gate:
     runs-on: ubuntu-latest
     environment: 
       name: prod-approval
-    needs: build # assuming the approval gate should only run after a successful build
+    needs: build 
     steps:
       - name: Wait for approval
         run: echo "approved"
         shell: bash
-        # this step is just a placeholder for actual approval logic
 
   deploy-prod:
     runs-on: ubuntu-latest
@@ -33,7 +31,6 @@ jobs:
     steps:
       - name: Deploy to Prod
         run: echo "Deploying to production"
-        # replace with actual deploy commands
       - name: Random Sleep
         run: sleep $((RANDOM % 1000))
         shell: bash
