@@ -22,6 +22,8 @@ jobs:
     needs: build # assuming the approval gate should only run after a successful build
     steps:
       - name: Wait for approval
+        run: echo "approved"
+        shell: bash
         # this step is just a placeholder for actual approval logic
 
   deploy-prod:
