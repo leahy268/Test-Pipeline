@@ -3,7 +3,7 @@ on:
   schedule:
     # Su 10pm Canberra time (AEST) = Su 12pm (UTC)
     # https://crontab.guru/#0_12_*_*_0
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
 
   workflow_dispatch:
 
@@ -81,7 +81,7 @@ jobs:
     concurrency:
       cancel-in-progress: false
       group: pp-deploy
-    if: needs.pp-contract-test.result == 'success' && (github.event_name == 'schedule' || needs.pp-approval.result == 'success')
+    if: ${{ !failure() && !cancelled()}}
     steps:
     - name: artifact Upload
       run: echo "Deploying"
@@ -96,6 +96,7 @@ jobs:
     concurrency:
       cancel-in-progress: false
       group: prod-contract-test
+    if: ${{ !failure() && !cancelled()}}
     steps:
     - name: artifact Upload
       run: echo "Deploying"
@@ -109,6 +110,7 @@ jobs:
     concurrency:
       cancel-in-progress: true
       group: prod-approval
+    if: ${{ !failure() && !cancelled()}}
     steps:
       - name: approved
         run: |
@@ -122,6 +124,7 @@ jobs:
     concurrency:
       cancel-in-progress: false
       group: prod-deploy
+    if: ${{ !failure() && !cancelled()}}
     steps:
     - name: artifact Upload
       run: echo "Deploying"
