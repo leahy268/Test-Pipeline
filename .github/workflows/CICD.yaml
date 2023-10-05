@@ -41,20 +41,6 @@ jobs:
      
     needs: 
       - republish-artifacts
-  
-  pp-contract-test:
-    runs-on: ubuntu-latest
-    concurrency:
-      cancel-in-progress: false
-      group: pp-contract-test
-    steps:
-    - name: artifact Upload
-      run: echo "Upload Artifacts"
-      shell: bash
-    
-    
-    needs:
-      - republish-artifacts
       
 # -----------------------------------------------------------------------------
 
@@ -62,18 +48,41 @@ jobs:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     environment: "pp-approval"
+    outputs:
+      approved: ${{steps.pp-approval.outputs.approved }}
     concurrency:
       cancel-in-progress: true
       group: pp-approval
     steps:
       - name: approved
+        id: pp-approval
         run: |
-          Write-Output "approved for pp"
+          echo "approved for pp"
+          echo "approved=true" >> $GITHUB_OUTPUT
+        shell: bash
     needs:
       - republish-artifacts
-      - pp-contract-test
+      
 
-
+  pp-contract-test:
+    runs-on: ubuntu-latest
+    concurrency:
+      cancel-in-progress: false
+      group: pp-contract-test
+    # since we have an optional approval gate, shortcut the 'needs' of this job using !failed() && !cancelled()
+    # if the approval gate was not required for this run, then we still want to run this step if the approval gate was skipped
+    # if the approval gate was required for this run, then only run this job if the approval was completed successfully
+    # unfortunately, we have to apply this to each step below since approval-gate above was skipped and by default GitHub intelligence
+    #   the skip status will cascade to all steps below that don't have always and automatically skip them as well
+    if: ${{ (!failure() && !cancelled()) && ( needs.pp-approval.outputs.approved == 'true' || needs.approval-gate.result == 'skipped')}}
+    steps:
+      - name: artifact Upload
+        run: echo "Upload Artifacts"
+        shell: bash
+         
+    needs:
+      - republish-artifacts
+      - pp-approval
 # -----------------------------------------------------------------------------
 
   pp-deploy:
@@ -81,7 +90,13 @@ jobs:
     concurrency:
       cancel-in-progress: false
       group: pp-deploy
-    if: ${{ !failure() && !cancelled()}}
+    # since we have an optional approval gate, shortcut the 'needs' of this job using !failed() && !cancelled()
+    # if the approval gate was not required for this run, then we still want to run this step if the approval gate was skipped
+    # if the approval gate was required for this run, then only run this job if the approval was completed successfully
+    # unfortunately, we have to apply this to each step below since approval-gate above was skipped and by default GitHub intelligence
+    #   the skip status will cascade to all steps below that don't have always and automatically skip them as well
+    if: ${{ (!failure() && !cancelled()) && ( needs.pp-approval.outputs.approved == 'true' || needs.approval-gate.result == 'skipped')}}
+    
     steps:
     - name: artifact Upload
       run: echo "Deploying"
@@ -91,18 +106,6 @@ jobs:
       - pp-contract-test
       - pp-approval
 
-  prod-contract-test:
-    runs-on: ubuntu-latest
-    concurrency:
-      cancel-in-progress: false
-      group: prod-contract-test
-    if: ${{ !failure() && !cancelled()}}
-    steps:
-    - name: artifact Upload
-      run: echo "Deploying"
-      shell: bash
-    
-    needs: pp-deploy
 # -----------------------------------------------------------------------------
 
   prod-approval:
@@ -111,13 +114,39 @@ jobs:
     concurrency:
       cancel-in-progress: true
       group: prod-approval
-    if: ${{ !failure() && !cancelled()}}
+    # since we have an optional approval gate, shortcut the 'needs' of this job using !failed() && !cancelled()
+    # if the approval gate was not required for this run, then we still want to run this step if the approval gate was skipped
+    # if the approval gate was required for this run, then only run this job if the approval was completed successfully
+    # unfortunately, we have to apply this to each step below since approval-gate above was skipped and by default GitHub intelligence
+    #   the skip status will cascade to all steps below that don't have always and automatically skip them as well
+    if: ${{ (!failure() && !cancelled()) && ( needs.pp-approval.outputs.approved == 'true' || needs.approval-gate.result == 'skipped')}}
     steps:
       - name: approved
         run: |
           Write-Output "approved for prod"
     needs:
       - pp-deploy
+      - pp-approval
+  
+  prod-contract-test:
+    runs-on: ubuntu-latest
+    concurrency:
+      cancel-in-progress: false
+      group: prod-contract-test
+    # since we have an optional approval gate, shortcut the 'needs' of this job using !failed() && !cancelled()
+    # if the approval gate was not required for this run, then we still want to run this step if the approval gate was skipped
+    # if the approval gate was required for this run, then only run this job if the approval was completed successfully
+    # unfortunately, we have to apply this to each step below since approval-gate above was skipped and by default GitHub intelligence
+    #   the skip status will cascade to all steps below that don't have always and automatically skip them as well
+    if: ${{ (!failure() && !cancelled()) && ( needs.pp-approval.outputs.approved == 'true' || needs.approval-gate.result == 'skipped')}}
+    steps:
+    - name: artifact Upload
+      run: echo "Deploying"
+      shell: bash
+        
+    needs: 
+      - pp-deploy
+      - prod-approval
 # -----------------------------------------------------------------------------
 
   prod-deploy:
@@ -125,7 +154,13 @@ jobs:
     concurrency:
       cancel-in-progress: false
       group: prod-deploy
-    if: ${{ !failure() && !cancelled()}}
+    # since we have an optional approval gate, shortcut the 'needs' of this job using !failed() && !cancelled()
+    # if the approval gate was not required for this run, then we still want to run this step if the approval gate was skipped
+    # if the approval gate was required for this run, then only run this job if the approval was completed successfully
+    # unfortunately, we have to apply this to each step below since approval-gate above was skipped and by default GitHub intelligence
+    #   the skip status will cascade to all steps below that don't have always and automatically skip them as well
+    if: ${{ (!failure() && !cancelled()) && ( needs.pp-approval.outputs.approved == 'true' || needs.approval-gate.result == 'skipped')}}
+
     steps:
     - name: artifact Upload
       run: echo "Deploying"
