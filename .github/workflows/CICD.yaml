@@ -74,7 +74,7 @@ jobs:
     # if the approval gate was required for this run, then only run this job if the approval was completed successfully
     # unfortunately, we have to apply this to each step below since approval-gate above was skipped and by default GitHub intelligence
     #   the skip status will cascade to all steps below that don't have always and automatically skip them as well
-    if: ${{ (!failure() && !cancelled()) && ( needs.pp-approval.outputs.approved == 'true' || needs.pp-appoval.result == 'skipped')}}
+    if: ${{ (!failure() && !cancelled()) && ( needs.pp-approval.outputs.approved == 'true' || needs.pp-approval.result == 'skipped')}}
     steps:
       - name: artifact Upload
         run: echo "Upload Artifacts"
